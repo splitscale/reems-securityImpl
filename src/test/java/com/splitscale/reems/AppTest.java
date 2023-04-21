@@ -1,8 +1,15 @@
 package com.splitscale.reems;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.ExportedUserRecord;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -10,20 +17,32 @@ import com.google.firebase.auth.ListUsersPage;
 
 public class AppTest {
 
-  @BeforeAll
-  public void setup() {
-    FirebaseApp.initializeApp();
-  }
+  // @BeforeEach
+  // public void setup() {
+  // FirebaseApp.initializeApp();
+  // }
 
   @Test
-  public void testHelloWorld() throws FirebaseAuthException {
-    // Start listing users from the beginning, 1000 at a time.
+  public void testHelloWorld() throws FirebaseAuthException, IOException {
+
+    FileInputStream serviceAccount = new FileInputStream("src/main/resources/serviceAccountKey.json");
+
+    FirebaseOptions options = new FirebaseOptions.Builder()
+        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+        .setDatabaseUrl("https://reems-b3fb1-default-rtdb.firebaseio.com")
+        .build();
+
+    FirebaseApp.initializeApp(options);
+
+    System.out.println("Getting user information...");
+
+    // Iterate through all users. This will still retrieve users in batches,
+    // buffering no more than 1000 users in memory at a time.
     ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
-    while (page != null) {
-      for (ExportedUserRecord user : page.getValues()) {
-        System.out.println("User: " + user.getUid());
-      }
-      page = page.getNextPage();
+
+    for (ExportedUserRecord user : page.iterateAll()) {
+      System.out.println("User: " + user.getUid());
     }
+
   }
 }
