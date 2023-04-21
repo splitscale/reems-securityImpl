@@ -1,8 +1,10 @@
 package com.splitscale.reems;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,14 +19,10 @@ import com.google.firebase.auth.ListUsersPage;
 
 public class AppTest {
 
-  // @BeforeEach
-  // public void setup() {
-  // FirebaseApp.initializeApp();
-  // }
+  FirebaseAuth auth;
 
-  @Test
-  public void testHelloWorld() throws FirebaseAuthException, IOException {
-
+  @Before
+  public void setup() throws IOException {
     FileInputStream serviceAccount = new FileInputStream("src/main/resources/serviceAccountKey.json");
 
     FirebaseOptions options = new FirebaseOptions.Builder()
@@ -34,11 +32,17 @@ public class AppTest {
 
     FirebaseApp.initializeApp(options);
 
+    auth = FirebaseAuth.getInstance();
+  }
+
+  @Test
+  public void testHelloWorld() throws FirebaseAuthException {
+
     System.out.println("Getting user information...");
 
     // Iterate through all users. This will still retrieve users in batches,
     // buffering no more than 1000 users in memory at a time.
-    ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
+    ListUsersPage page = auth.listUsers(null);
 
     for (ExportedUserRecord user : page.iterateAll()) {
       System.out.println("User: " + user.getUid());
