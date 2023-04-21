@@ -11,8 +11,11 @@ import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.runners.MethodSorters;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -26,6 +29,7 @@ import com.google.firebase.auth.UserRecord;
 import com.google.firebase.auth.UserRecord.CreateRequest;
 import com.google.firebase.auth.UserRecord.UpdateRequest;
 
+// @FixMethodOrder(MethodSorters.JVM)
 public class AppTest {
 
   FirebaseAuth auth;
@@ -60,15 +64,18 @@ public class AppTest {
     auth = FirebaseAuth.getInstance();
   }
 
-  @AfterAll
-  public void deleteUser() throws FirebaseAuthException {
-
-    auth.deleteUser(uid);
-    System.out.println("Successfully deleted user.");
+  @Test
+  public void userFlow() throws FirebaseAuthException {
+    createUser();
+    retrieveData();
+    updateUser();
+    getListOfAllfUsers();
+    createCustomToken();
+    verifyIdToken();
+    deleteUser();
   }
 
-  @Test
-  public void createUser() throws FirebaseAuthException {
+  private void createUser() throws FirebaseAuthException {
 
     CreateRequest request = new CreateRequest()
         .setUid(uid)
@@ -78,18 +85,22 @@ public class AppTest {
         .setDisplayName("Steven Dy");
 
     UserRecord userRecord = auth.createUser(request);
+
     System.out.println("Successfully created new user: " + userRecord.getUid());
   }
 
-  @Test
-  public void retrieveData() throws FirebaseAuthException {
+  private void retrieveData() throws FirebaseAuthException {
+
+    System.out.println("new user: " + uid);
+
     UserRecord userRecord = auth.getUser(uid);
 
     System.out.println("Successfully fetched user data: " + userRecord.getUid());
   }
 
-  @Test
-  public void updateUser() throws FirebaseAuthException {
+  private void updateUser() throws FirebaseAuthException {
+    System.out.println("Updating user: " + uid);
+
     UpdateRequest request = new UpdateRequest(uid)
         .setEmail("user-" + generateRandomPhone() + "@example.com")
         .setPhoneNumber(generateRandomPhone())
@@ -100,38 +111,37 @@ public class AppTest {
     System.out.println("Successfully updated user: " + userRecord.getUid());
   }
 
-  @Test
-  public void retrieveDataAfterUpdate() throws FirebaseAuthException {
-    UserRecord userRecord = auth.getUser(uid);
-
-    System.out.println("Successfully fetched user data: " + userRecord.getUid());
-  }
-
-  @Test
-  public void getListOfAllfUsers() throws FirebaseAuthException {
+  private void getListOfAllfUsers() throws FirebaseAuthException {
 
     System.out.println("Getting user information...");
 
     ListUsersPage page = auth.listUsers(null);
 
     for (ExportedUserRecord user : page.iterateAll()) {
+      System.out.println("Name: " + user.getDisplayName());
       System.out.println("User: " + user.getUid());
     }
   }
 
-  @Test
-  public void createCustomToken() throws FirebaseAuthException {
-    Map<String, Object> additionalClaims = new HashMap<String, Object>();
-    additionalClaims.put("role", "admin");
+  private void createCustomToken() throws FirebaseAuthException {
+    Map<String, Object> claims = new HashMap<String, Object>();
+    claims.put("role", "admin");
 
-    customToken = auth.createCustomToken(uid, additionalClaims);
-
+    auth.setCustomUserClaims(uid, claims);
   }
 
-  @Test
-  public void verifyIdToken() throws FirebaseAuthException {
+  private void verifyIdToken() throws FirebaseAuthException {
     // Verify the ID token first.
-    FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(customToken);
-    System.out.println(decoded.getClaims().get("role"));
+    // Lookup the user associated with the specified uid.
+    UserRecord user = auth.getUser(uid);
+    System.out.println("role: " + user.getCustomClaims().get("role"));
+
   }
+
+  private void deleteUser() throws FirebaseAuthException {
+
+    auth.deleteUser(uid);
+    System.out.println("Successfully deleted user.");
+  }
+
 }
