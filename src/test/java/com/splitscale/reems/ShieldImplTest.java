@@ -50,7 +50,7 @@ public class ShieldImplTest {
 
   @Test
   public void testRegister() {
-    CredentialRequest request = new CredentialRequest(null, null);
+    CredentialRequest request = new CredentialRequest("Jiv", "DelaCruz");
     String expectedResponse = "Registration successful";
 
     // Mock the behavior of the ShieldDriver's register method
