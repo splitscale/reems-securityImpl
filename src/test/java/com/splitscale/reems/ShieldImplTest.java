@@ -1,89 +1,63 @@
-// package com.splitscale.reems;
+package com.splitscale.reems;
 
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.mockito.Mockito.mock;
-// import static org.mockito.Mockito.verify;
-// import static org.mockito.Mockito.when;
+import com.splitscale.reems.auth.CredentialRequest;
+import org.junit.Before;
+import org.junit.Test;
 
-// import com.splitscale.reems.services.ShieldService;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-// public class ShieldImplTest {
+public class ShieldImplTest {
 
-//   private ShieldDriver shieldDriver;
-//   private ShieldService shieldService;
+  private ShieldDriver mockDriver;
+  private ShieldImpl shield;
 
-//   @BeforeEach
-//   public void setUp() {
-//     // Create a mock ShieldDriver
-//     shieldDriver = mock(ShieldDriver.class);
+  @Before
+  public void setup() {
+    mockDriver = mock(ShieldDriver.class);
+    shield = new ShieldImpl("http://example.com");
+    shield.setDriver(mockDriver);
+  }
 
-//     // Create an instance of ShieldImpl with the mock ShieldDriver
-//     shieldService = new ShieldImpl("http://example.com");
-//     ((ShieldImpl) shieldService).setShieldDriver(shieldDriver);
-//   }
+  @Test
+  public void testValidate() {
+    String jwtToken = "sampleJwtToken";
+    String validationData = "sampleValidationData";
+    ValidJwtResponse expectedResponse = new ValidJwtResponse(false);
 
-//   @Test
-//   public void testLogin() {
-//     // Set up the mock behavior
-//     UserRequest userRequest = new UserRequest("username", "password");
-//     LoginResponse expectedResult = new LoginResponse("exampleToken", null);
-//     when(shieldDriver.login(userRequest)).thenReturn(expectedResult);
+    // Mock the behavior of the ShieldDriver's validateJwt method
+    when(mockDriver.validateJwt(any())).thenReturn(expectedResponse);
 
-//     // Call the login method
-//     Object result = shieldService.login(userRequest);
+    ValidJwtResponse actualResponse = shield.validate(jwtToken, validationData);
 
-//     // Verify the interaction and the result
-//     verify(shieldDriver).login(userRequest);
-//     assertEquals(expectedResult, result);
-//   }
+    assertEquals(expectedResponse, actualResponse);
+  }
 
-//   @Test
-//   public void testRegister() {
-//     // Set up the mock behavior
-//     UserRequest userRequest = new UserRequest("username", "password");
+  @Test
+  public void testInvalidate() {
+    String jwtToken = "sampleJwtToken";
+    String expectedResponse = "Invalidation successful";
 
-//     // Call the register method
-//     String result = shieldService.register(userRequest);
+    // Mock the behavior of the ShieldDriver's invalidateJwt method
+    when(mockDriver.invalidateJwt(jwtToken)).thenReturn(expectedResponse);
 
-//     // Verify the interaction and the result
-//     verify(shieldDriver).register(userRequest);
-//     assertEquals("User registration completed.", result);
-//   }
+    String actualResponse = shield.invalidate(jwtToken);
 
-//   @Test
-//   public void testValidate() {
-//     // Set up the mock behavior
-//     String jwtToken = "exampleToken";
-//     String validationData = "exampleData";
-//     ValidateRequest validateRequest = new ValidateRequest(
-//       jwtToken,
-//       validationData
-//     );
-//     ValidJwtResponse expectedResult = new ValidJwtResponse(true);
-//     when(shieldDriver.validateJwt(validateRequest)).thenReturn(expectedResult);
+    assertEquals(expectedResponse, actualResponse);
+  }
 
-//     // Call the validate method
-//     Object result = shieldService.validate(jwtToken, validationData);
+  @Test
+  public void testRegister() {
+    CredentialRequest request = new CredentialRequest(null, null);
+    String expectedResponse = "Registration successful";
 
-//     // Verify the interaction and the result
-//     verify(shieldDriver).validateJwt(validateRequest);
-//     assertEquals(expectedResult, result);
-//   }
+    // Mock the behavior of the ShieldDriver's register method
+    when(mockDriver.register(request)).thenReturn(expectedResponse);
 
-//   @Test
-//   public void testInvalidate() {
-//     // Set up the mock behavior
-//     String jwtToken = "exampleToken";
-//     String expectedResult = "Invalidation success";
-//     when(shieldDriver.invalidateJwt(jwtToken)).thenReturn(expectedResult);
+    String actualResponse = shield.register(request);
 
-//     // Call the invalidate method
-//     String result = shieldService.invalidate(jwtToken);
-
-//     // Verify the interaction and the result
-//     verify(shieldDriver).invalidateJwt(jwtToken);
-//     assertEquals(expectedResult, result);
-//   }
-// }
+    assertEquals(expectedResponse, actualResponse);
+  }
+}

@@ -1,8 +1,9 @@
 package com.splitscale.reems;
 
-import com.splitscale.reems.services.ShieldService;
+import com.splitscale.reems.auth.CredentialRequest;
+import com.splitscale.reems.services.SecurityService;
 
-public class ShieldImpl implements ShieldService {
+public class ShieldImpl implements SecurityService {
 
   private ShieldDriver driver;
 
@@ -10,14 +11,8 @@ public class ShieldImpl implements ShieldService {
     this.driver = new ShieldDriver(baseUrl);
   }
 
-  @Override
-  public LoginResponse login(UserRequest request) {
-    return driver.login(request);
-  }
-
-  @Override
-  public void register(UserRequest request) {
-    driver.register(request);
+  public void setDriver(ShieldDriver driver) {
+    this.driver = driver;
   }
 
   @Override
@@ -32,5 +27,10 @@ public class ShieldImpl implements ShieldService {
   @Override
   public String invalidate(String jwtToken) {
     return driver.invalidateJwt(jwtToken);
+  }
+
+  @Override
+  public String register(CredentialRequest request) {
+    return driver.register(request);
   }
 }
