@@ -1,7 +1,10 @@
 package com.splitscale.reems;
 
-import com.splitscale.reems.auth.CredentialRequest;
-import com.splitscale.reems.services.SecurityService;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
+import com.splitscale.reems.security.auth.CredentialRequest;
+import com.splitscale.reems.security.services.SecurityService;
 
 public class ShieldImpl implements SecurityService {
 
@@ -16,21 +19,16 @@ public class ShieldImpl implements SecurityService {
   }
 
   @Override
-  public ValidJwtResponse validate(String jwtToken, String validationData) {
+  public void register(CredentialRequest request) throws IOException, IllegalArgumentException {
+    driver.register(request);
+  }
+
+  @Override
+  public void validateJwt(String jwtToken, String userId) throws GeneralSecurityException, IOException {
     ValidateRequest validateRequest = new ValidateRequest(
-      jwtToken,
-      validationData
-    );
-    return driver.validateJwt(validateRequest);
-  }
+        jwtToken,
+        userId);
 
-  @Override
-  public String invalidate(String jwtToken) {
-    return driver.invalidateJwt(jwtToken);
-  }
-
-  @Override
-  public String register(CredentialRequest request) {
-    return driver.register(request);
+    driver.validateJwt(validateRequest);
   }
 }

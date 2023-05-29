@@ -1,63 +1,58 @@
 package com.splitscale.reems;
 
-import com.splitscale.reems.auth.CredentialRequest;
-import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.splitscale.reems.security.auth.CredentialRequest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class ShieldImplTest {
 
-  private ShieldDriver mockDriver;
-  private ShieldImpl shield;
+  @Test
+  public void testRegister() throws IOException, IllegalArgumentException {
+    // Create mock objects
+    ShieldDriver mockDriver = mock(ShieldDriver.class);
+    CredentialRequest mockRequest = mock(CredentialRequest.class);
 
-  @Before
-  public void setup() {
-    mockDriver = mock(ShieldDriver.class);
-    shield = new ShieldImpl("http://example.com");
+    // Create object to test
+    ShieldImpl shield = new ShieldImpl("http://example.com");
     shield.setDriver(mockDriver);
+
+    // Call method to test
+    shield.register(mockRequest);
+
+    // Verify that the driver's register method was called with the correct argument
+    verify(mockDriver).register(mockRequest);
   }
 
   @Test
-  public void testValidate() {
-    String jwtToken = "sampleJwtToken";
-    String validationData = "sampleValidationData";
-    ValidJwtResponse expectedResponse = new ValidJwtResponse(false);
+  public void testValidateJwt() throws GeneralSecurityException, IOException {
+    // Create mock objects
+    ShieldDriver mockDriver = mock(ShieldDriver.class);
 
-    // Mock the behavior of the ShieldDriver's validateJwt method
-    when(mockDriver.validateJwt(any())).thenReturn(expectedResponse);
+    // Create object to test
+    ShieldImpl shield = new ShieldImpl("http://example.com");
+    shield.setDriver(mockDriver);
 
-    ValidJwtResponse actualResponse = shield.validate(jwtToken, validationData);
+    // Call method to test
+    shield.validateJwt("jwtToken", "userId");
 
-    assertEquals(expectedResponse, actualResponse);
+    // Create ArgumentCaptor to capture the argument passed to the validateJwt
+    // method
+    ArgumentCaptor<ValidateRequest> argument = ArgumentCaptor.forClass(ValidateRequest.class);
+    verify(mockDriver).validateJwt(argument.capture());
+
+    // Get the captured argument
+    ValidateRequest capturedValidateRequest = argument.getValue();
+
+    // Verify that the captured argument has the correct values
+    assertEquals("jwtToken", capturedValidateRequest.getJwtToken());
+    assertEquals("userId", capturedValidateRequest.getUserId());
   }
 
-  @Test
-  public void testInvalidate() {
-    String jwtToken = "sampleJwtToken";
-    String expectedResponse = "Invalidation successful";
-
-    // Mock the behavior of the ShieldDriver's invalidateJwt method
-    when(mockDriver.invalidateJwt(jwtToken)).thenReturn(expectedResponse);
-
-    String actualResponse = shield.invalidate(jwtToken);
-
-    assertEquals(expectedResponse, actualResponse);
-  }
-
-  @Test
-  public void testRegister() {
-    CredentialRequest request = new CredentialRequest("Jiv", "DelaCruz");
-    String expectedResponse = "Registration successful";
-
-    // Mock the behavior of the ShieldDriver's register method
-    when(mockDriver.register(request)).thenReturn(expectedResponse);
-
-    String actualResponse = shield.register(request);
-
-    assertEquals(expectedResponse, actualResponse);
-  }
 }

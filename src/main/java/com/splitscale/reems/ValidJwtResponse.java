@@ -12,9 +12,6 @@ public class ValidJwtResponse {
     this.claims = claims;
   }
 
-  public ValidJwtResponse(boolean b) {
-  }
-
   public String getToken() {
     return token;
   }
